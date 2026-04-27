@@ -20,16 +20,13 @@
     </style>
 </head>
 <body>
-
     <div id="header">>> KONG_PRAP_SYSTEM_ONLINE <<</div>
-
     <div id="login-screen">
         <p style="margin-bottom: 20px;">ENTER YOUR ID...</p>
         <input type="text" id="username" placeholder="NAME" autocomplete="off">
         <br>
         <button onclick="enterWorld()">ACCESS</button>
     </div>
-
     <div id="chat-screen">
         <div id="messages"></div>
         <div class="controls">
@@ -39,27 +36,23 @@
     </div>
 
     <script>
-        // ข้อมูลของมึงที่กูใส่ให้เสร็จแล้ว
         const SUPABASE_URL = 'https://gfhogiztboefcuujnutp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_CMNs8PcOuM9YV7Uv8kPdKQ_P2M46anQ';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let myName = "";
+        let myName = "Guest"; 
 
         async function enterWorld() {
             const nameInput = document.getElementById('username');
             if(nameInput.value.trim()) {
-                myName = nameInput.value;
+                myName = nameInput.value.trim();
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('chat-screen').style.display = 'flex';
-                
-                // 1. ดึงแชทเก่า
                 loadHistory();
                 
-                // 2. เปิดระบบ Realtime (เด้งสด)
-                supabaseClient.channel('public:messages')
+                supabaseClient.channel('chat-realtime')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                    displayMessage(payload.new);
+                    if (payload.new) displayMessage(payload.new);
                 })
                 .subscribe();
             }
@@ -67,33 +60,35 @@
 
         async function send() {
             const input = document.getElementById('msgInput');
-            if(input.value.trim()) {
+            const msg = input.value.trim();
+            if(msg) {
+                input.value = ""; // ล้างช่องพิมพ์ทันทีกันเบิ้ล
                 const { error } = await supabaseClient
                     .from('messages')
-                    .insert([{ username: myName, content: input.value }]);
-                
+                    .insert([{ username: myName, content: msg }]);
                 if(error) console.error("Error:", error.message);
-                input.value = "";
             }
         }
 
         async function loadHistory() {
-            const { data } = await supabaseClient
+            const { data, error } = await supabaseClient
                 .from('messages')
                 .select('*')
                 .order('id', { ascending: true })
                 .limit(50);
             
+            const box = document.getElementById('messages');
+            box.innerHTML = '<div>*** SYSTEM: SECURE CONNECTION ***</div><br>';
             if(data) {
-                const box = document.getElementById('messages');
-                box.innerHTML = '<div>*** SYSTEM: ENCRYPTED CONNECTION ***</div><br>';
                 data.forEach(msg => displayMessage(msg));
             }
         }
 
         function displayMessage(msg) {
             const box = document.getElementById('messages');
-            box.innerHTML += `<div class="msg-line"><span class="user">[${msg.username}]:</span> ${msg.content}</div>`;
+            const user = msg.username || "Unknown";
+            const text = msg.content || "...";
+            box.innerHTML += `<div class="msg-line"><span class="user">[${user}]:</span> ${text}</div>`;
             box.scrollTop = box.scrollHeight;
         }
     </script>
