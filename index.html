@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PIXEL CHAT 2005</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000; color: #0f0; font-family: 'Press Start 2P', cursive; margin: 0; overflow: hidden; }
+        
+        /* มุมซ้ายบน: สามเหลี่ยมพิกเซล + CHAT */
+        #header { position: absolute; top: 15px; left: 15px; display: flex; align-items: center; }
+        #pixel-triangle { 
+            width: 30px; height: 30px; 
+            background: #0f0; 
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* สร้างรูปสามเหลี่ยมด้วยโค้ด */
+            margin-right: 15px;
+            box-shadow: 0 0 10px #0f0;
+        }
+        #chat-logo { font-size: 18px; text-shadow: 2px 2px #005500; }
+
+        /* หน้า Login */
+        #login-screen { 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; height: 100vh; text-align: center; 
+        }
+        input { 
+            background: #000; border: 2px solid #0f0; color: #0f0; 
+            padding: 15px; font-family: 'Press Start 2P'; font-size: 14px;
+            margin-top: 20px; outline: none; width: 300px;
+        }
+        button { 
+            background: #0f0; color: #000; border: none; padding: 15px 30px; 
+            margin-top: 20px; font-family: 'Press Start 2P'; cursor: pointer;
+        }
+        button:hover { background: #fff; }
+
+        /* หน้าแชท */
+        #chat-screen { display: none; padding: 60px 20px 20px 20px; height: 100vh; box-sizing: border-box; }
+        #messages { border: 2px solid #333; height: 70%; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: #050505; }
+        .msg { margin-bottom: 10px; font-size: 12px; line-height: 1.5; }
+        .user { color: #0088ff; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <div id="pixel-triangle"></div>
+        <div id="chat-logo">CHAT</div>
+    </div>
+
+    <div id="login-screen">
+        <div style="font-size: 20px;">WHAT YOUR NAME?</div>
+        <input type="text" id="username" placeholder="TYPE_HERE...">
+        <button onclick="enterWorld()">ENTER_THE_WORLD</button>
+    </div>
+
+    <div id="chat-screen">
+        <div id="welcome-msg" style="color: #fff; margin-bottom: 10px;"></div>
+        <div id="messages"></div>
+        <input type="text" id="msgInput" style="width: 80%;" placeholder="TYPE_MESSAGE..." onkeypress="if(event.key==='Enter')send()">
+        <button onclick="send()" style="margin-top: 0; padding: 12px;">SEND</button>
+    </div>
+
+    <script>
+        // หมายเหตุ: มึงต้องเอา URL Firebase มาใส่ตรงนี้เพื่อให้แชทกับคนทั้งโลกได้จริง
+        // แต่ตอนนี้กูเขียนให้มันทำงานแบบจำลอง (Simulation) ไปก่อน
+        
+        function enterWorld() {
+            const name = document.getElementById('username').value;
+            if(name) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('chat-screen').style.display = 'block';
+                document.getElementById('welcome-msg').innerText = "> WELCOME, " + name.toUpperCase();
+            }
+        }
+
+        function send() {
+            const input = document.getElementById('msgInput');
+            const box = document.getElementById('messages');
+            if(input.value) {
+                box.innerHTML += `<div class="msg"><span class="user">[${document.getElementById('username').value}]:</span> ${input.value}</div>`;
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
