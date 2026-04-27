@@ -1,87 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>PIXEL CHAT 2005</title>
+    <title>KONG_PRAP PIXEL CHAT</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #000; color: #0f0; font-family: 'Press Start 2P', cursive; margin: 0; overflow: hidden; }
-        
-        /* มุมซ้ายบน: สามเหลี่ยมพิกเซล + CHAT */
-        #header { position: absolute; top: 15px; left: 15px; display: flex; align-items: center; }
-        #pixel-triangle { 
-            width: 30px; height: 30px; 
-            background: #0f0; 
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* สร้างรูปสามเหลี่ยมด้วยโค้ด */
-            margin-right: 15px;
-            box-shadow: 0 0 10px #0f0;
-        }
-        #chat-logo { font-size: 18px; text-shadow: 2px 2px #005500; }
-
-        /* หน้า Login */
-        #login-screen { 
-            display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; height: 100vh; text-align: center; 
-        }
-        input { 
-            background: #000; border: 2px solid #0f0; color: #0f0; 
-            padding: 15px; font-family: 'Press Start 2P'; font-size: 14px;
-            margin-top: 20px; outline: none; width: 300px;
-        }
-        button { 
-            background: #0f0; color: #000; border: none; padding: 15px 30px; 
-            margin-top: 20px; font-family: 'Press Start 2P'; cursor: pointer;
-        }
+        body { background-color: #000; color: #0f0; font-family: 'Press Start 2P', cursive; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        #header { padding: 15px; text-align: center; border-bottom: 3px solid #0f0; background: #111; color: #0f0; font-size: 14px; }
+        #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; }
+        #chat-screen { display: none; flex-direction: column; flex-grow: 1; padding: 15px; }
+        #messages { flex-grow: 1; overflow-y: auto; border: 2px solid #0f0; padding: 10px; background: #050505; margin-bottom: 10px; font-size: 11px; line-height: 1.5; }
+        .controls { display: flex; gap: 10px; }
+        input { background: #000; border: 2px solid #0f0; color: #0f0; padding: 10px; font-family: 'Press Start 2P'; font-size: 12px; outline: none; }
+        button { background: #0f0; color: #000; border: none; padding: 10px 20px; font-family: 'Press Start 2P'; cursor: pointer; font-size: 12px; }
         button:hover { background: #fff; }
-
-        /* หน้าแชท */
-        #chat-screen { display: none; padding: 60px 20px 20px 20px; height: 100vh; box-sizing: border-box; }
-        #messages { border: 2px solid #333; height: 70%; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: #050505; }
-        .msg { margin-bottom: 10px; font-size: 12px; line-height: 1.5; }
-        .user { color: #0088ff; }
+        .msg-line { margin-bottom: 8px; word-wrap: break-word; }
+        .user { color: #ff00ff; }
     </style>
 </head>
 <body>
 
-    <div id="header">
-        <div id="pixel-triangle"></div>
-        <div id="chat-logo">CHAT</div>
-    </div>
+    <div id="header">>> KONG_PRAP_SYSTEM_ONLINE <<</div>
 
     <div id="login-screen">
-        <div style="font-size: 20px;">WHAT YOUR NAME?</div>
-        <input type="text" id="username" placeholder="TYPE_HERE...">
-        <button onclick="enterWorld()">ENTER_THE_WORLD</button>
+        <p style="margin-bottom: 20px;">ENTER YOUR ID...</p>
+        <input type="text" id="username" placeholder="NAME" autocomplete="off">
+        <br>
+        <button onclick="enterWorld()">ACCESS</button>
     </div>
 
     <div id="chat-screen">
-        <div id="welcome-msg" style="color: #fff; margin-bottom: 10px;"></div>
         <div id="messages"></div>
-        <input type="text" id="msgInput" style="width: 80%;" placeholder="TYPE_MESSAGE..." onkeypress="if(event.key==='Enter')send()">
-        <button onclick="send()" style="margin-top: 0; padding: 12px;">SEND</button>
+        <div class="controls">
+            <input type="text" id="msgInput" placeholder="TYPE MSG..." style="flex-grow: 1;" onkeypress="if(event.key==='Enter')send()">
+            <button onclick="send()">SEND</button>
+        </div>
     </div>
 
     <script>
-        // หมายเหตุ: มึงต้องเอา URL Firebase มาใส่ตรงนี้เพื่อให้แชทกับคนทั้งโลกได้จริง
-        // แต่ตอนนี้กูเขียนให้มันทำงานแบบจำลอง (Simulation) ไปก่อน
-        
-        function enterWorld() {
-            const name = document.getElementById('username').value;
-            if(name) {
+        // ข้อมูลของมึงที่กูใส่ให้เสร็จแล้ว
+        const SUPABASE_URL = 'https://gfhogiztboefcuujnutp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_CMNs8PcOuM9YV7Uv8kPdKQ_P2M46anQ';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let myName = "";
+
+        async function enterWorld() {
+            const nameInput = document.getElementById('username');
+            if(nameInput.value.trim()) {
+                myName = nameInput.value;
                 document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('chat-screen').style.display = 'block';
-                document.getElementById('welcome-msg').innerText = "> WELCOME, " + name.toUpperCase();
+                document.getElementById('chat-screen').style.display = 'flex';
+                
+                // 1. ดึงแชทเก่า
+                loadHistory();
+                
+                // 2. เปิดระบบ Realtime (เด้งสด)
+                supabaseClient.channel('public:messages')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                    displayMessage(payload.new);
+                })
+                .subscribe();
             }
         }
 
-        function send() {
+        async function send() {
             const input = document.getElementById('msgInput');
-            const box = document.getElementById('messages');
-            if(input.value) {
-                box.innerHTML += `<div class="msg"><span class="user">[${document.getElementById('username').value}]:</span> ${input.value}</div>`;
+            if(input.value.trim()) {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([{ username: myName, content: input.value }]);
+                
+                if(error) console.error("Error:", error.message);
                 input.value = "";
-                box.scrollTop = box.scrollHeight;
             }
+        }
+
+        async function loadHistory() {
+            const { data } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('id', { ascending: true })
+                .limit(50);
+            
+            if(data) {
+                const box = document.getElementById('messages');
+                box.innerHTML = '<div>*** SYSTEM: ENCRYPTED CONNECTION ***</div><br>';
+                data.forEach(msg => displayMessage(msg));
+            }
+        }
+
+        function displayMessage(msg) {
+            const box = document.getElementById('messages');
+            box.innerHTML += `<div class="msg-line"><span class="user">[${msg.username}]:</span> ${msg.content}</div>`;
+            box.scrollTop = box.scrollHeight;
         }
     </script>
 </body>
