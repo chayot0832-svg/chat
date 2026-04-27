@@ -86,8 +86,13 @@
 
         function displayMessage(msg) {
             const box = document.getElementById('messages');
-            const user = msg.username || "Unknown";
-            const text = msg.content || "...";
+            
+            // ดักทุกทาง: ถ้า username ไม่มี ให้ลองหา Name หรือ user_id
+            const user = msg.username || msg.Name || msg.user || "Unknown User";
+            
+            // ดักทุกทาง: ถ้า content ไม่มี ให้ลองหา Message หรือ text
+            const text = msg.content || msg.Message || msg.text || "...";
+            
             box.innerHTML += `<div class="msg-line"><span class="user">[${user}]:</span> ${text}</div>`;
             box.scrollTop = box.scrollHeight;
         }
