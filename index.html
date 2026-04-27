@@ -62,35 +62,39 @@
             const input = document.getElementById('msgInput');
             const msg = input.value.trim();
             if(msg) {
-                input.value = ""; // ล้างช่องพิมพ์ทันทีกันเบิ้ล
+                input.value = ""; 
                 const { error } = await supabaseClient
                     .from('messages')
                     .insert([{ username: myName, content: msg }]);
-                if(error) console.error("Error:", error.message);
             }
         }
 
         async function loadHistory() {
-            const { data, error } = await supabaseClient
+            const { data } = await supabaseClient
                 .from('messages')
                 .select('*')
                 .order('id', { ascending: true })
                 .limit(50);
             
             const box = document.getElementById('messages');
-            box.innerHTML = '<div>*** SYSTEM: SECURE CONNECTION ***</div><br>';
-            if(data) {
-                data.forEach(msg => displayMessage(msg));
-            }
+            box.innerHTML = '<div>*** SYSTEM: ONLINE ***</div><br>';
+            if(data) data.forEach(msg => displayMessage(msg));
         }
 
-       function displayMessage(msg) {
+        function displayMessage(msg) {
             const box = document.getElementById('messages');
             
-            // ดึงค่าจากหัวตารางที่มึงแคปมาให้ดูเป๊ะๆ
-            const user = msg.username || "Unknown";
-            const text = msg.content || "...";
+            // ไม้ตาย: วนลูปหาว่าในก้อนข้อมูลนี้มีอะไรบ้าง แล้วเอามาโชว์ให้หมด!
+            let user = msg.username || "Unknown";
+            let text = msg.content || "...";
             
+            // ถ้าหา username ไม่เจอจริงๆ ให้ลองหยิบจากทุกคอลัมน์ที่เป็นไปได้
+            if(user === "Unknown") {
+                const keys = Object.keys(msg);
+                user = msg[keys.find(k => k.toLowerCase().includes('user'))] || msg[keys[1]] || "Unknown";
+                text = msg[keys.find(k => k.toLowerCase().includes('cont'))] || msg[keys[2]] || "...";
+            }
+
             box.innerHTML += `<div class="msg-line"><span class="user">[${user}]:</span> ${text}</div>`;
             box.scrollTop = box.scrollHeight;
         }
